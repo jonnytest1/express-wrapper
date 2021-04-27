@@ -4,21 +4,20 @@
         "module": "commonjs",
         "baseUrl": "./",
         "moduleResolution": "node",
-        "target": "es6",
+        "target": "ES2017",
         "emitDecoratorMetadata": true,
+		"experimentalDecorators": true,
+		"importHelpers": true,
         "useDefineForClassFields": true,
         "typeRoots": [
-            "node_modules/@types",
-            "customTypes/*"
+            "node_modules/@types"
         ],
-        "experimentalDecorators": true,
-        "outDir": "compiledjs/shutup",
+		"rootDir": "src", 
+		"outDir": "./dist",
+		"declaration": true,
         "lib": [
             "dom",
             "es6"
         ]
-    },
-    "include": [
-        "./"
-    ]
+    }
 }
