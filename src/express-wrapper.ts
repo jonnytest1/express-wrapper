@@ -156,7 +156,7 @@ async function loadFiles(path: string) {
 async function loadFile(absolutePath: string) {
     if (absolutePath.endsWith('.js') || absolutePath.endsWith('.ts')) {
         const data = await promises.readFile(absolutePath);
-        if (data.includes('express-wrapper')) {
+        if (data.includes('express-hibernate-wrapper')) {
             require(absolutePath);
         }
     }
