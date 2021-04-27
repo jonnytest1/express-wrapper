@@ -80,15 +80,6 @@ export async function initialize(rootpath: string, options?: {
         options.prereesources(app);
     }
 
-    /* app.use((req, res, next) => {
-         const forwardedFor = req.headers.http_x_forwarded_for;
-         if ((!forwardedFor || typeof forwardedFor !== 'string' || !forwardedFor.startsWith('192.168.178')) && process.env.DEBUG !== 'true') {
-             res.status(403).send();
-             return;
-         }
-         next();
-     });*/
-
     resources.sort((r1, r2) => r1.path > r2.path ? 1 : -1);
     for (let resource of resources) {
         const filePath = resource.target.constructor.path ? '/' + resource.target.constructor.path : '';
