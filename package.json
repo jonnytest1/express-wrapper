@@ -1,5 +1,5 @@
 {
-    "name": "express-wrapper",
+    "name": "express-hibernate-wrapper",
     "version": "1.0.1",
     "description": "hibernate clone for typescript",
     "main": "index.js",
