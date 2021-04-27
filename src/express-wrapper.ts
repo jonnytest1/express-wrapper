@@ -38,18 +38,30 @@ function resourceFunction<T = (req: HttpRequest, res: HttpResponse) => Promise<a
     };
 }
 
-export function WS(options: { path: string }) {
+export function WS(options: { path: string }|string) {
+    if(typeof options=="string"){
+        options={path:options}
+    }
     return resourceFunction('ws', options) as any;
 }
 
-export function GET(options: { path: string }) {
+export function GET(options: { path: string }|string) {
+    if(typeof options=="string"){
+        options={path:options}
+    }
     return resourceFunction('get', options);
 }
-export function POST(options: { path: string }) {
+export function POST(options: { path: string }|string) {
+    if(typeof options=="string"){
+        options={path:options}
+    }
     return resourceFunction('post', options);
 }
 
-export function PUT(options: { path: string }) {
+export function PUT(options: { path: string }|string) {
+    if(typeof options=="string"){
+        options={path:options}
+    }
     return resourceFunction('put', options);
 }
 
