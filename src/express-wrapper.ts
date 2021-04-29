@@ -1,10 +1,22 @@
 const express = require('express');
-import { Express, Request, Response } from 'express';
+import { Express, Request, Response, } from 'express';
+
 import { promises } from 'fs';
+import type * as core from 'express-serve-static-core';
 import { join } from 'path';
 import { ExpressWs } from './express-ws-type';
 import { ResponseCodeError } from './response-code-error';
-export type HttpRequest = Request;
+
+export interface HttpRequest<
+    User = any,
+    P = core.ParamsDictionary,
+    ResBody = any,
+    ReqBody = any,
+    ReqQuery = core.Query,
+    Locals extends Record<string, any> = Record<string, any>> extends Request<P, ResBody, ReqBody, ReqQuery, Locals> {
+    user?: User
+}
+
 export type HttpResponse = Response;
 
 export const resources: Array<{
