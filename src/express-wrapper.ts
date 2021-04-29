@@ -38,29 +38,29 @@ function resourceFunction<T = (req: HttpRequest, res: HttpResponse) => Promise<a
     };
 }
 
-export function WS(options: { path: string }|string) {
-    if(typeof options=="string"){
-        options={path:options}
+export function WS(options: { path: string } | string) {
+    if (typeof options == "string") {
+        options = { path: options }
     }
     return resourceFunction('ws', options) as any;
 }
 
-export function GET(options: { path: string }|string) {
-    if(typeof options=="string"){
-        options={path:options}
+export function GET(options: { path: string } | string) {
+    if (typeof options == "string") {
+        options = { path: options }
     }
     return resourceFunction('get', options);
 }
-export function POST(options: { path: string }|string) {
-    if(typeof options=="string"){
-        options={path:options}
+export function POST(options: { path: string } | string) {
+    if (typeof options == "string") {
+        options = { path: options }
     }
     return resourceFunction('post', options);
 }
 
-export function PUT(options: { path: string }|string) {
-    if(typeof options=="string"){
-        options={path:options}
+export function PUT(options: { path: string } | string) {
+    if (typeof options == "string") {
+        options = { path: options }
     }
     return resourceFunction('put', options);
 }
@@ -106,7 +106,7 @@ export async function initialize(rootpath: string, options?: {
         } else {
             app[resource.type](fullPath, async (req, res) => {
                 try {
-                    await resource.callback(req, res);
+                    await resource.callback.call(resource.target, req, res);
                 } catch (e) {
                     if (e instanceof ResponseCodeError) {
                         let body = JSON.stringify(e.reason);
