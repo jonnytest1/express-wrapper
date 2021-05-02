@@ -87,7 +87,7 @@ export async function initialize(rootpath: string, options?: {
     console.log('laoded files');
 
     const app: ExpressWs = express();
-
+    require('express-ws')(app);
     if (options.allowCors) {
         app.use((req, res, next) => {
             res.header('Access-Control-Allow-Origin', '*');
