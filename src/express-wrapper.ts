@@ -112,8 +112,7 @@ export async function initialize(rootpath: string, options?: {
         console.log(`adding ${fullPath} with ${resource.type.toLocaleUpperCase()}`);
         if (resource.type === 'ws') {
             app[resource.type](fullPath, (ws, req) => {
-                const clientKey: string = req.query.client as string;
-                resource.target.onConnected(clientKey, ws);
+                resource.target.onConnected(req, ws);
             });
         } else {
             app[resource.type](fullPath, async (req, res) => {
