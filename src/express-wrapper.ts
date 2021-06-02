@@ -4,24 +4,30 @@ import { Express, Request, Response, } from 'express';
 import { promises } from 'fs';
 import type * as core from 'express-serve-static-core';
 import { join } from 'path';
-import { ExpressWs } from './express-ws-type';
+import { ExpressWs, Websocket } from './express-ws-type';
 import { ResponseCodeError } from './response-code-error';
 
 export interface HttpRequest<
     User = any,
+    AttributeType extends { [Key: string]: Primitive } = { [Key: string]: Primitive },
     P = core.ParamsDictionary,
     ResBody = any,
     ReqBody = any,
     ReqQuery = core.Query,
     Locals extends Record<string, any> = Record<string, any>> extends Request<P, ResBody, ReqBody, ReqQuery, Locals> {
     user?: User
+
+    attributes?: AttributeType
 }
 
 export type HttpResponse = Response;
 
+export type Primitive = string | number | boolean
+
 export const resources: Array<{
     type: 'get' | 'post' | 'delete' | 'put' | 'ws',
     path: string
+    attributes?: { [Key: string]: Primitive }
     target: any
     callback(req, res): Promise<void>,
 }> = [];
@@ -50,27 +56,32 @@ function resourceFunction<T = (req: HttpRequest, res: HttpResponse) => Promise<a
     };
 }
 
-export function WS(options: { path: string } | string) {
+export function WS(options: BasePathProperties | string) {
     if (typeof options == "string") {
         options = { path: options }
     }
     return resourceFunction('ws', options) as any;
 }
 
-export function GET(options: { path: string } | string) {
+export function GET(options: BasePathProperties | string) {
     if (typeof options == "string") {
         options = { path: options }
     }
     return resourceFunction('get', options);
 }
-export function POST(options: { path: string } | string) {
+export function POST(options: BasePathProperties | string) {
     if (typeof options == "string") {
         options = { path: options }
     }
     return resourceFunction('post', options);
 }
 
-export function PUT(options: { path: string } | string) {
+type BasePathProperties = {
+    path: string;
+    attributes?: { [Key: string]: Primitive }
+};
+
+export function PUT(options: BasePathProperties | string) {
     if (typeof options == "string") {
         options = { path: options }
     }
@@ -82,6 +93,7 @@ export async function initialize(rootpath: string, options?: {
     allowCors?: boolean
     prereesources?(app: Express): void;
     postresource?(app: Express): void;
+    annotatedFilter?(req: HttpRequest, res: HttpResponse | Websocket, next: (req: HttpRequest, res: HttpResponse) => void): void
 }) {
     await loadFiles(rootpath);
     console.log('laoded files');
@@ -110,12 +122,21 @@ export async function initialize(rootpath: string, options?: {
         const resourcePath = resource.path.startsWith('/') || resource.path === '' ? resource.path : '/' + resource.path;
         const fullPath = `/rest${filePath}${resourcePath}`;
         console.log(`adding ${fullPath} with ${resource.type.toLocaleUpperCase()}`);
+
+
         if (resource.type === 'ws') {
-            app[resource.type](fullPath, (ws, req) => {
-                resource.target.onConnected(req, ws);
+            app[resource.type](fullPath, (ws, req: HttpRequest) => {
+                req.attributes = resource.attributes
+                if (options.annotatedFilter) {
+                    options.annotatedFilter(req, ws, () => {
+                        resource.target.onConnected(req, ws);
+                    })
+                } else {
+                    resource.target.onConnected(req, ws);
+                }
             });
         } else {
-            app[resource.type](fullPath, async (req, res) => {
+            const resourceCallback = async (req, res) => {
                 try {
                     await resource.callback.call(resource.target, req, res);
                 } catch (e) {
@@ -130,6 +151,14 @@ export async function initialize(rootpath: string, options?: {
                     console.error(e);
                     res.status(500)
                         .send(e);
+                }
+            };
+            app[resource.type](fullPath, (req: HttpRequest, res) => {
+                req.attributes = resource.attributes
+                if (options.annotatedFilter) {
+                    options.annotatedFilter(req, res, resourceCallback)
+                } else {
+                    resourceCallback(req, res)
                 }
             });
         }
