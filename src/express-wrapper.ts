@@ -91,6 +91,7 @@ export function PUT(options: BasePathProperties | string) {
 export async function initialize(rootpath: string, options?: {
     public?: string
     allowCors?: boolean
+    errorCallback?: (error: Error) => void
     prereesources?(app: Express): void;
     postresource?(app: Express): void;
     annotatedFilter?(req: HttpRequest, res: HttpResponse | Websocket, next: (req: HttpRequest, res: HttpResponse) => void): void
@@ -126,13 +127,18 @@ export async function initialize(rootpath: string, options?: {
 
         if (resource.type === 'ws') {
             app[resource.type](fullPath, (ws, req: HttpRequest) => {
-                req.attributes = resource.attributes
-                if (options.annotatedFilter) {
-                    options.annotatedFilter(req, ws, () => {
+                try {
+                    req.attributes = resource.attributes
+                    if (options.annotatedFilter) {
+                        options.annotatedFilter(req, ws, () => {
+                            resource.target.onConnected(req, ws);
+                        })
+                    } else {
                         resource.target.onConnected(req, ws);
-                    })
-                } else {
-                    resource.target.onConnected(req, ws);
+                    }
+                } catch (e) {
+                    options.errorCallback?.(e);
+                    throw e;
                 }
             });
         } else {
@@ -140,6 +146,7 @@ export async function initialize(rootpath: string, options?: {
                 try {
                     await resource.callback.call(resource.target, req, res);
                 } catch (e) {
+                    options.errorCallback?.(e);
                     if (e instanceof ResponseCodeError) {
                         let body = JSON.stringify(e.reason);
                         if (req.headers['content-type'] === 'application/x-www-form-urlencoded') {
