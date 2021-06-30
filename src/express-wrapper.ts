@@ -88,6 +88,11 @@ export function PUT(options: BasePathProperties | string) {
     return resourceFunction('put', options);
 }
 
+function getPath(resource: typeof resources[number]) {
+    const filePath = resource.target.constructor.path ? '/' + resource.target.constructor.path : '';
+    const resourcePath = resource.path.startsWith('/') || resource.path === '' ? resource.path : '/' + resource.path;
+    return `/rest${filePath}${resourcePath}`;
+}
 export async function initialize(rootpath: string, options?: {
     public?: string
     allowCors?: boolean
@@ -113,7 +118,7 @@ export async function initialize(rootpath: string, options?: {
     app.use(express.urlencoded({ extended: true }));
     app.use(express.text());
     app.use((req: HttpRequest, res, next) => {
-        req.attributes = resources.find(res => req.url.includes(res.path))?.attributes;
+        req.attributes = resources.find(res => req.url === getPath(res))?.attributes;
         next();
     });
 
@@ -123,9 +128,7 @@ export async function initialize(rootpath: string, options?: {
 
     resources.sort((r1, r2) => r1.path > r2.path ? 1 : -1);
     for (let resource of resources) {
-        const filePath = resource.target.constructor.path ? '/' + resource.target.constructor.path : '';
-        const resourcePath = resource.path.startsWith('/') || resource.path === '' ? resource.path : '/' + resource.path;
-        const fullPath = `/rest${filePath}${resourcePath}`;
+        const fullPath = getPath(resource);
         console.log(`adding ${fullPath} with ${resource.type.toLocaleUpperCase()}`);
 
 
