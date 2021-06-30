@@ -112,6 +112,10 @@ export async function initialize(rootpath: string, options?: {
     app.use(express.json({ limit: '800mb' }));
     app.use(express.urlencoded({ extended: true }));
     app.use(express.text());
+    app.use((req: HttpRequest, res, next) => {
+        req.attributes = resources.find(res => req.url.includes(res.path))?.attributes;
+        next();
+    });
 
     if (options && options.prereesources) {
         options.prereesources(app);
