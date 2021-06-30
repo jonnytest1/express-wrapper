@@ -45,13 +45,13 @@ export function Path(subPath?: string) {
     };
 }
 
-function resourceFunction<T = (req: HttpRequest, res: HttpResponse) => Promise<any>>(method: typeof resources[0]['type'], options: { path: string; }) {
+function resourceFunction<T = (req: HttpRequest, res: HttpResponse) => Promise<any>>(method: typeof resources[0]['type'], options: BasePathProperties) {
     return (target: any, propertyKey: string, descriptor: TypedPropertyDescriptor<T>) => {
         resources.push({
             callback: target[propertyKey],
             type: method,
-            path: options.path,
-            target
+            target,
+            ...options
         });
     };
 }
