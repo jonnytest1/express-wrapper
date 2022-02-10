@@ -6,15 +6,16 @@
         "moduleResolution": "node",
         "target": "ES2017",
         "emitDecoratorMetadata": true,
-		"experimentalDecorators": true,
-		"importHelpers": true,
+        "experimentalDecorators": true,
+        "strictNullChecks": true,
+        "importHelpers": true,
         "useDefineForClassFields": true,
         "typeRoots": [
             "node_modules/@types"
         ],
-		"rootDir": "src", 
-		"outDir": "./dist",
-		"declaration": true,
+        "rootDir": "src",
+        "outDir": "./dist",
+        "declaration": true,
         "lib": [
             "dom",
             "es6"

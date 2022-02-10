@@ -3,7 +3,7 @@ export class ResponseCodeError extends Error {
 
 
     constructor(public code: number, reason: string) {
-        super(null);
+        super(undefined);
         if (typeof reason == "string") {
             this.reason = {
                 message: reason

@@ -93,14 +93,14 @@ function getPath(resource: typeof resources[number]) {
     const resourcePath = resource.path.startsWith('/') || resource.path === '' ? resource.path : '/' + resource.path;
     return `/rest${filePath}${resourcePath}`;
 }
-export async function initialize(rootpath: string, options?: {
+export async function initialize(rootpath: string, options: {
     public?: string
     allowCors?: boolean
     errorCallback?: (error: Error) => void
     prereesources?(app: Express): void;
     postresource?(app: Express): void;
     annotatedFilter?(req: HttpRequest, res: HttpResponse | Websocket, next: (req: HttpRequest, res: HttpResponse) => void): void
-}) {
+} = {}) {
     await loadFiles(rootpath);
     console.log('laoded files');
 
