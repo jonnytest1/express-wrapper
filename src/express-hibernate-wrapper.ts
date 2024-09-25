@@ -4,6 +4,7 @@ import { ResponseCodeError } from './response-code-error';
 import { assign } from './util/settable';
 import { getDBConfig } from 'hibernatets/utils';
 import { load, queries, remove, save } from 'hibernatets';
+import type { LoadOptions } from 'hibernatets/load';
 
 
 export interface ConstructorClass<T> {
@@ -102,10 +103,10 @@ export function autosaveable(target) {
 
 export async function loadOne<T>(
     findClass: ConstructorClass<T>,
-    primaryKEyOrFilter,
+    primaryKeyOrFilter,
     params: Array<string | number> | string,
-    opts = {}): Promise<T> {
-    const obj = await load(findClass, primaryKEyOrFilter, params, { ...opts, first: true })
+    opts: LoadOptions<T> = {}): Promise<T> {
+    const obj = await load(findClass, primaryKeyOrFilter, params, { ...opts, first: true })
     if (!obj) {
         throw new ResponseCodeError(404, `${findClass.name} not found`)
     }
