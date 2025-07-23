@@ -18,7 +18,7 @@
     "@types/node": "^20",
     "express": "^4",
     "typescript": "^5",
-    "hibernatets": "2.0.80"
+    "hibernatets": "2.0.109"
   },
   "devDependencies": {
     "ts-node": ""
