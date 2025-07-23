@@ -3,8 +3,9 @@ import { HttpRequest, resources } from './express-wrapper';
 import { ResponseCodeError } from './response-code-error';
 import { assign } from './util/settable';
 import { getDBConfig } from 'hibernatets/utils';
-import { load, queries, remove, save } from 'hibernatets';
+import { load, MariaDbBase, queries, remove, save } from 'hibernatets';
 import type { LoadOptions } from 'hibernatets/load';
+import { DataBaseBase } from 'hibernatets';
 
 
 export interface ConstructorClass<T> {
@@ -48,57 +49,70 @@ export function getter<T>(opts: {
     }
 }
 
-
 export function autosaveable(target) {
-    resources.push({
-        path: `auto/${target.name.toLowerCase()}`,
-        target: target,
-        type: 'put',
-        callback: async (req, res) => {
-            if (!req.body.itemRef) {
-                return res.status(400).send("missing 'itemRef' id key")
-            }
-            const obj = await load(target, +req.body.itemRef);
-            if (!obj) {
-                return res.status(404).send("didnt find oject with itemRef as id")
-            }
-            const errors = await assign(obj, req.body);
-            if (errors) {
-                res.status(400)
-                    .send(errors);
-                return;
-            }
 
-            await queries(obj);
-            res.send(obj);
-        }
-    })
+    return autosaveableWithOpts()(target)
 
-    resources.push({
-        path: `auto/${target.name.toLowerCase()}`,
-        target: target,
-        type: 'delete',
-        callback: async (req, res) => {
-            if (!req.query.itemRef) {
-                return res.status(400).send("missing 'itemRef' id key")
+}
+export function autosaveableWithOpts(opts?: { poolGen?: () => DataBaseBase }) {
+
+    return function (target) {
+        resources.push({
+            path: `auto/${target.name.toLowerCase()}`,
+            target: target,
+            type: 'put',
+            callback: async (req, res) => {
+                if (!req.body.itemRef) {
+                    return res.status(400).send("missing 'itemRef' id key")
+                }
+
+                const pool = opts?.poolGen ? opts?.poolGen() : new MariaDbBase()
+                const obj = await load(target, +req.body.itemRef, undefined, {
+                    db: pool
+                });
+                if (!obj) {
+                    return res.status(404).send("didnt find oject with itemRef as id")
+                }
+                const errors = await assign(obj, req.body);
+                if (errors) {
+                    res.status(400)
+                        .send(errors);
+                    return;
+                }
+
+                await queries(obj);
+                pool.end()
+                res.send(obj);
             }
-            const obj = await remove(target, +req.query.itemRef, { deep: true });
-            await queries(obj);
-            res.status(200).send(`${obj}`);
-        }
-    })
+        })
 
-    resources.push({
-        path: `auto/${target.name.toLowerCase()}`,
-        target: target,
-        type: 'post',
-        callback: async (req, res) => {
-            const obj = new target();
-            await assign(obj, req.body)
-            await save(obj);
-            res.send(obj);
-        }
-    })
+        resources.push({
+            path: `auto/${target.name.toLowerCase()}`,
+            target: target,
+            type: 'delete',
+            callback: async (req, res) => {
+                if (!req.query.itemRef) {
+                    return res.status(400).send("missing 'itemRef' id key")
+                }
+                const obj = await remove(target, +req.query.itemRef, { deep: true });
+                await queries(obj);
+                res.status(200).send(`${obj}`);
+            }
+        })
+
+        resources.push({
+            path: `auto/${target.name.toLowerCase()}`,
+            target: target,
+            type: 'post',
+            callback: async (req, res) => {
+                const obj = new target();
+                await assign(obj, req.body)
+                await save(obj);
+                res.send(obj);
+            }
+        })
+    }
+
 }
 
 export async function loadOne<T>(
