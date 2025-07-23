@@ -1,6 +1,6 @@
 {
   "name": "express-hibernate-wrapper",
-  "version": "1.0.27",
+  "version": "1.0.28",
   "description": "hibernate clone for typescript",
   "main": "index.js",
   "repository": {
